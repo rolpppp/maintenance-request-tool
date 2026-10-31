@@ -97,3 +97,31 @@ export async function listPropertyNames(supabase: SupabaseClient): Promise<strin
   if (error) throw error;
   return data.map((p) => p.name);
 }
+
+export type Vendor = { id: string; name: string; phone: string | null; is_in_house: boolean; is_active: boolean };
+
+/** Every vendor, removed ones included: a request may still be assigned to one. Callers filter. */
+export async function listVendors(supabase: SupabaseClient): Promise<Vendor[]> {
+  const { data, error } = await supabase
+    .from('vendors')
+    .select('id, name, phone, is_in_house, is_active')
+    .order('sort_order')
+    .order('name')
+    .returns<Vendor[]>();
+  if (error) throw error;
+  return data;
+}
+
+/** Open (not Done) requests per vendor id. */
+export async function openRequestCounts(supabase: SupabaseClient): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('requests')
+    .select('vendor_id')
+    .not('vendor_id', 'is', null)
+    .neq('status', 'done')
+    .returns<{ vendor_id: string }[]>();
+  if (error) throw error;
+  const counts: Record<string, number> = {};
+  for (const { vendor_id } of data) counts[vendor_id] = (counts[vendor_id] ?? 0) + 1;
+  return counts;
+}

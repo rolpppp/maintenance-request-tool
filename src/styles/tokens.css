@@ -138,12 +138,16 @@ html {
 @keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
 @keyframes slide-down { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes dialog-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
 
 .motion-reveal { animation: rise 280ms var(--ease-out) both; }
 .motion-warn { animation: drop 200ms var(--ease-out) both; }
 .motion-thumb { animation: settle 200ms var(--ease-out) both; }
 .motion-pop { animation: pop 450ms var(--ease-pop) 120ms both; }
 .motion-new-event { animation: slide-down 220ms var(--ease-out) both; }
+.motion-toast { animation: toast-in 200ms var(--ease-out) both; }
 
 /* Confirmation card: the card rises, the tick draws after 200ms, the rest fades in at 400ms. */
 @keyframes rise-lg { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -159,7 +163,7 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; }
-  .motion-reveal, .motion-warn, .motion-thumb, .motion-pop, .motion-new-event, .motion-card, .motion-after {
+  .motion-reveal, .motion-warn, .motion-thumb, .motion-pop, .motion-new-event, .motion-toast, .motion-card, .motion-after {
     animation: fade 150ms ease-out both;
   }
   .motion-tick path { animation: none; stroke-dashoffset: 0; }
@@ -193,4 +197,46 @@ textarea.control { height: auto; min-height: 112px; padding: 12px 14px; line-hei
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 700ms linear infinite;
+}
+
+/* Dialog: a centred card on desktop, a bottom sheet on phones, full screen for the photo viewer (HANDOFF §5.7).
+   The native <dialog> in the top layer gives the focus trap, Escape and the backdrop. Tailwind's reset zeroes
+   the margin that centres it, so it is set here. */
+.dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-dialog);
+}
+.dialog::backdrop { background: var(--scrim); }
+.dialog[open] { animation: dialog-in 200ms var(--ease-out) both; }
+.dialog-photo {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+  overflow: hidden;
+}
+.dialog-photo::backdrop { background: var(--scrim-photo); }
+@media (max-width: 639px) {
+  .dialog:not(.dialog-photo) {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+  }
+  .dialog:not(.dialog-photo)[open] { animation: sheet-in 300ms var(--ease-drawer) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open], .dialog:not(.dialog-photo)[open] { animation: fade 150ms ease-out both; }
 }

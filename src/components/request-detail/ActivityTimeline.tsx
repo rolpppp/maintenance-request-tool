@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react';
 import { Card } from '@/components/Card';
+import { ActivityList } from '@/components/request-detail/ActivityList';
 import { STATUS_META, type RequestStatus } from '@/config/status';
 import { humanVisit, submittedLabel } from '@/lib/format';
 import type { VisitWindow } from '@/lib/request-types';
@@ -42,24 +43,16 @@ export function ActivityTimeline({ events, now }: { events: RequestEvent[]; now:
         </p>
       }
     >
-      <ol className="space-y-4">
-        {events.map((event) => (
-          <li key={event.id} className="flex gap-3">
-            <span className="mt-2 size-2 shrink-0 rounded-full bg-line-strong" aria-hidden="true" />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <p className="text-sm">
-                  <span className="font-semibold">{event.actor_label}</span> {sentence(event, now)}
-                </p>
-                <time dateTime={event.created_at} className="text-[13px] text-muted tabular-nums">
-                  {submittedLabel(event.created_at, now)}
-                </time>
-              </div>
-              {event.note && <p className="mt-2 rounded-chip bg-panel p-3 text-sm whitespace-pre-wrap">{event.note}</p>}
-            </div>
-          </li>
-        ))}
-      </ol>
+      <ActivityList
+        entries={events.map((event) => ({
+          id: event.id,
+          who: event.actor_label,
+          sentence: sentence(event, now),
+          at: event.created_at,
+          when: submittedLabel(event.created_at, now),
+          note: event.note,
+        }))}
+      />
     </Card>
   );
 }

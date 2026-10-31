@@ -16,9 +16,9 @@ import { VisitCard } from '@/components/request-detail/VisitCard';
 import { CATEGORY_BY_ID } from '@/config/categories';
 import { requireStaff } from '@/lib/auth';
 import { openMs } from '@/lib/dashboard';
-import { ageWords, atLabel } from '@/lib/format';
+import { ageWords, atLabel, humanVisit } from '@/lib/format';
 import { requestTitle } from '@/lib/request-title';
-import { getRequest, listEvents, listPhotos } from '@/lib/staff-requests';
+import { getRequest, listEvents, listPhotos, listVendors } from '@/lib/staff-requests';
 
 // Same shape the database enforces (no 0, O, 1, I or L).
 const refSchema = z.string().regex(/^MR-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/);
@@ -31,7 +31,11 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const request = await getRequest(supabase, ref.data);
   if (!request) notFound();
   // Photo links are signed only now, after the staff check above.
-  const [events, photos] = await Promise.all([listEvents(supabase, request.id), listPhotos(supabase, request.id)]);
+  const [events, photos, vendors] = await Promise.all([
+    listEvents(supabase, request.id),
+    listPhotos(supabase, request.id),
+    listVendors(supabase),
+  ]);
 
   const now = new Date();
   const source = request.source === 'staff_phone' ? 'Logged' : 'Sent';
@@ -66,15 +70,23 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       <div className="mt-6 flex flex-col-reverse gap-5 min-[960px]:flex-row">
         <div className="min-w-0 space-y-5 min-[960px]:flex-[999_1_560px]">
           <TenantMessage request={request} />
-          <PhotoGrid photos={photos} />
+          <PhotoGrid
+            photos={photos}
+            heading={`${request.ref} · ${requestTitle(request)}`}
+            where={`${request.units.properties.name} · Unit ${request.units.unit_number}`}
+          />
           <TenantPanel request={request} />
           <ActivityTimeline events={events} now={now} />
         </div>
         <div className="space-y-5 min-[960px]:sticky min-[960px]:top-5 min-[960px]:flex-[1_1_360px] min-[960px]:self-start">
-          <StatusCard status={request.status} />
-          <AssignCard vendor={request.vendors} />
-          <VisitCard request={request} now={now} />
-          <NoteCard />
+          <StatusCard requestId={request.id} status={request.status} />
+          <AssignCard requestId={request.id} vendorId={request.vendor_id} vendors={vendors} />
+          <VisitCard
+            requestId={request.id}
+            visit={{ date: request.visit_date, window: request.visit_window }}
+            summary={humanVisit(request.visit_date, request.visit_window, now)}
+          />
+          <NoteCard requestId={request.id} />
         </div>
       </div>
     </main>
