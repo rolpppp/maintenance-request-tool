@@ -145,9 +145,47 @@ html {
 .motion-pop { animation: pop 450ms var(--ease-pop) 120ms both; }
 .motion-new-event { animation: slide-down 220ms var(--ease-out) both; }
 
+/* Confirmation card: the card rises, the tick draws after 200ms, the rest fades in at 400ms. */
+@keyframes rise-lg { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.motion-card { animation: rise-lg 450ms var(--ease-out) both; }
+.motion-tick path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 350ms ease-out 200ms forwards; }
+.motion-after { animation: fade 300ms ease-out 400ms both; }
+
 @media (prefers-reduced-motion: reduce) {
-  .motion-reveal, .motion-warn, .motion-thumb, .motion-pop, .motion-new-event {
+  .motion-reveal, .motion-warn, .motion-thumb, .motion-pop, .motion-new-event, .motion-card, .motion-after {
     animation: fade 150ms ease-out both;
   }
+  .motion-tick path { animation: none; stroke-dashoffset: 0; }
+  .spinner { animation-duration: 1.6s; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+/* Form controls (HANDOFF §4.4). The error look is driven by aria-invalid so markup and style can't disagree. */
+.control {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-field);
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px; /* 16px stops iOS Safari zooming on focus */
+  letter-spacing: inherit;
+}
+textarea.control { height: auto; min-height: 112px; padding: 12px 14px; line-height: 1.5; }
+.control:hover { border-color: var(--color-field-hover); }
+.control:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.control[aria-invalid='true'] { border-color: var(--color-danger); }
+.control:disabled { background: var(--color-panel); border-color: var(--color-line-strong); color: var(--color-faint); cursor: not-allowed; }
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
 }
