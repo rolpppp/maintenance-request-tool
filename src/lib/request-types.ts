@@ -8,7 +8,9 @@ export type RequestRow = {
   id: string;
   ref: string;
   contact_name: string;
-  contact_matches_tenant: boolean;
+  tenant_id: string | null;
+  /** The linked tenant on file; null when the contact didn't match anyone. */
+  tenant: { full_name: string } | null;
   category: CategoryId;
   answers: Record<string, string>;
   description: string;

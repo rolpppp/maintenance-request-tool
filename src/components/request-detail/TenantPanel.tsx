@@ -22,10 +22,10 @@ export function TenantPanel({ request }: { request: RequestDetail }) {
           <p className="text-sm">
             {request.contact_email ? <a href={`mailto:${request.contact_email}`} className="break-all text-accent underline underline-offset-2">{request.contact_email}</a> : <span className="text-muted">No email</span>}
           </p>
-          {request.contact_matches_tenant ? (
+          {request.tenant ? (
             <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-accent">
               <Check size={16} aria-hidden="true" />
-              Matches the tenant on file for {unit}
+              Matches {request.tenant.full_name} on file for {unit}
             </p>
           ) : (
             <p className="mt-3 flex items-start gap-1.5 rounded-chip border border-line bg-panel p-3 text-sm text-warn-ink">

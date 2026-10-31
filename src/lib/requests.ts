@@ -2,7 +2,7 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sanitizeAnswers } from '@/config/categories';
-import { contactMatchesTenant } from '@/lib/contact';
+import { matchTenant } from '@/lib/contact';
 import { MAX_PHOTOS, PHOTO_EXTENSIONS, photoError } from '@/lib/photos';
 import { requestSchema, type RequestInput } from '@/lib/validation';
 
@@ -48,20 +48,20 @@ export function checkPhotos(formData: FormData): { photos: File[] } | { error: s
 type UnitRow = {
   unit_number: string;
   properties: { name: string };
-  tenants: { phone: string | null; email: string | null; is_current: boolean }[];
+  tenants: { id: string; phone: string | null; email: string | null; is_current: boolean }[];
 };
 
 export type UnitOnFile = {
   unitNumber: string;
   propertyName: string;
-  tenants: { phone: string | null; email: string | null }[];
+  tenants: { id: string; phone: string | null; email: string | null }[];
 };
 
 /** The unit plus the current tenants' contact details. Tenant data stays on the server. */
 export async function findUnit(db: Db, unitId: string): Promise<UnitOnFile | null> {
   const { data, error } = await db
     .from('units')
-    .select('unit_number, properties(name), tenants(phone, email, is_current)')
+    .select('unit_number, properties(name), tenants(id, phone, email, is_current)')
     .eq('id', unitId)
     .maybeSingle<UnitRow>();
   if (error) throw error;
@@ -79,7 +79,8 @@ type NewRequest = {
   contact_name: string;
   contact_phone: string | null;
   contact_email: string | null;
-  contact_matches_tenant: boolean;
+  /** The current tenant on file whose phone or email matched, else null. */
+  tenant_id: string | null;
   category: string;
   answers: Record<string, string>;
   quick_check_tried: boolean | null;
@@ -99,7 +100,7 @@ export function newRequestRow(input: RequestInput, unit: UnitOnFile, quickCheckT
     contact_name: input.name,
     contact_phone: input.phone || null,
     contact_email: input.email || null,
-    contact_matches_tenant: contactMatchesTenant(input, unit.tenants),
+    tenant_id: matchTenant(input, unit.tenants),
     category: input.category,
     answers,
     quick_check_tried: quickCheckTried,

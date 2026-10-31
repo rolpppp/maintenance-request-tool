@@ -1,6 +1,6 @@
 /** Matching a request's contact details against the tenants on file for the unit. */
 
-type Tenant = { phone: string | null; email: string | null };
+type Tenant = { id: string; phone: string | null; email: string | null };
 
 /** Digits only, ignoring a leading US country code, so "(949) 201-4471" equals "1-949-201-4471". */
 export function normalizePhone(phone: string): string {
@@ -8,12 +8,15 @@ export function normalizePhone(phone: string): string {
   return digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
 }
 
-export function contactMatchesTenant(contact: { phone: string; email: string }, tenants: Tenant[]): boolean {
+/**
+ * The id of the current tenant whose phone or email equals the contact's, or null. A hint for
+ * staff, not proof of identity. If several match, one matching both wins, else the first.
+ */
+export function matchTenant(contact: { phone: string; email: string }, tenants: Tenant[]): string | null {
   const phone = normalizePhone(contact.phone);
   const email = contact.email.trim().toLowerCase();
-  return tenants.some(
-    (t) =>
-      (phone !== '' && normalizePhone(t.phone ?? '') === phone) ||
-      (email !== '' && (t.email ?? '').trim().toLowerCase() === email),
-  );
+  const phoneMatches = (t: Tenant) => phone !== '' && normalizePhone(t.phone ?? '') === phone;
+  const emailMatches = (t: Tenant) => email !== '' && (t.email ?? '').trim().toLowerCase() === email;
+  const match = tenants.find((t) => phoneMatches(t) && emailMatches(t)) ?? tenants.find((t) => phoneMatches(t) || emailMatches(t));
+  return match?.id ?? null;
 }

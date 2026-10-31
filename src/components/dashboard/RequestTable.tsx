@@ -82,8 +82,8 @@ function RequestRowView({ request, now }: { request: DashboardRequest; now: Date
         <p className="font-medium">
           {request.units.properties.name} · {request.units.unit_number}
         </p>
-        <p className="text-muted">{request.contact_name}</p>
-        {!request.contact_matches_tenant && (
+        <p className="text-muted">{request.tenant?.full_name ?? request.contact_name}</p>
+        {!request.tenant_id && (
           <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-warn-ink">
             <TriangleAlert size={14} aria-hidden="true" />
             Not on file

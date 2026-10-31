@@ -54,7 +54,7 @@ export function applyFilters(requests: DashboardRequest[], f: Filters): Dashboar
       (!f.status || r.status === f.status) &&
       (!f.category || r.category === f.category) &&
       (!f.property || r.units.properties.name === f.property) &&
-      (!q || [r.ref, r.units.unit_number, r.contact_name].some((v) => v.toLowerCase().includes(q))),
+      (!q || [r.ref, r.units.unit_number, r.contact_name, r.tenant?.full_name ?? ''].some((v) => v.toLowerCase().includes(q))),
   );
 }
 

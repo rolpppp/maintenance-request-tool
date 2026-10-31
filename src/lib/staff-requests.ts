@@ -8,7 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 /** Reads for the staff screens. They take the signed-in user's client, so RLS decides what is visible. */
 
 const BASE_COLUMNS =
-  'id, ref, contact_name, contact_matches_tenant, category, answers, description, status, vendor_id, visit_date, visit_window, created_at, closed_at, vendors(name, phone, is_in_house)';
+  'id, ref, contact_name, tenant_id, tenant:tenants!requests_tenant_id_fkey(full_name), category, answers, description, status, vendor_id, visit_date, visit_window, created_at, closed_at, vendors(name, phone, is_in_house)';
 
 /** Open requests plus the ones closed in the last week. Older closed requests are not needed here. */
 export async function listRequests(supabase: SupabaseClient, now: Date): Promise<DashboardRequest[]> {
