@@ -27,7 +27,7 @@ cp .env.example .env.local     # fill in Supabase values
 npm install
 # run supabase/migrations/0001_init.sql and supabase/seed.sql in the Supabase SQL editor
 npm run import:units -- data/sample_units.csv
-npm run create:staff -- you@example.com "Your Name" 'a-strong-password'
+npm run create:staff -- you@example.com "Your Name" "a-strong-password"
 npm run dev
 ```
 

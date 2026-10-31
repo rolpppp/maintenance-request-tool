@@ -57,7 +57,7 @@ npm run build         # next build
 npm run lint          # eslint
 npm run typecheck     # tsc --noEmit
 npm run import:units -- data/sample_units.csv
-npm run create:staff -- demo@example.com "Maria R." 'password'
+npm run create:staff -- demo@example.com "Maria R." "password"
 ```
 
 Run `npm run typecheck && npm run lint && npm run build` before every commit.
