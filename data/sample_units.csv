@@ -1,0 +1,16 @@
+property,unit,tenant_name,email,phone,status,lease_end
+Palm Court,101,Maria Santos,maria.santos84@gmail.com,(949) 201-4471,occupied,2027-03-31
+Palm Court,102,James Whitfield,jwhitfield@yahoo.com,949-201-8832,occupied,2026-12-31
+Palm Court,103,,,,vacant,
+Palm Court,104,Denise Carter,denise.carter@gmail,949-201-1190,occupied,2027-06-30
+Palm Court,105,Tom & Rachel Nguyen,tnguyen22@hotmail.com,9492013345,occupied,2027-01-31
+Palm Court,105,Rachel Nguyen,rachelnguyen.rn@gmail.com,949-201-3346,occupied,2027-01-31
+Bayview Flats,A,Luis Herrera,luis.herrera@gmial.com,(949) 304-7781,occupied,2026-11-30
+Bayview Flats,B,Angela Brooks,,949-304-2290,occupied,2027-08-31
+Bayview Flats,C,Kevin O'Neil,koneil77@outlook.com,949-304-5512,vacant,2027-02-28
+Bayview Flats,D,Priya Patel,priya.patel@yahoo.com,949-304-0098,occupied,2026-10-31
+Bayview flats,D ,Priya Patel,priya.patel@yahoo.com,949-304-0098,occupied,2026-10-31
+Cedar Row,1,Marcus Lee,marcuslee.fl@hotmial.com,949-410-6623,occupied,2027-04-30
+Cedar Row,2,Sandra Diaz,sandra.diaz@icloud.com,949-410,occupied,2027-05-31
+Cedar Row,3,Robert Kim,ROBERT.KIM@GMAIL.COM,949-410-7781,occupied,2027-13-01
+Cedar Row,4,Jenna Moore,jenna moore@yahoo.com,949-410-3349,occupied,2027-09-30
