@@ -9,9 +9,9 @@ import type { StepProps } from './form-state';
 type Phone = { display: string; tel: string };
 
 /** Everything in this step is driven by categories.ts. Changing the category clears the answers and the quick check. */
-export function StepProblem({ values, update, phone }: StepProps & { phone: Phone }) {
+export function StepProblem({ values, update, phone, staff }: StepProps & { phone: Phone; staff: boolean }) {
   const category = values.category ? CATEGORY_BY_ID[values.category] : null;
-  const showFollowUps = category && (!category.quickCheck || values.quickCheck === 'still_broken');
+  const showFollowUps = category && (staff || !category.quickCheck || values.quickCheck === 'still_broken');
 
   return (
     <Step n={3} title="What's wrong?">
@@ -38,7 +38,7 @@ export function StepProblem({ values, update, phone }: StepProps & { phone: Phon
         ))}
       </fieldset>
 
-      {category?.quickCheck && (
+      {category?.quickCheck && !staff && (
         <QuickCheck steps={category.quickCheck} state={values.quickCheck} onChange={(quickCheck) => update({ quickCheck })} />
       )}
       {showFollowUps && <FollowUps category={category} answers={values.answers} update={update} phone={phone} />}

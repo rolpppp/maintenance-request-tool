@@ -1,4 +1,5 @@
 import { Clock, Wrench } from 'lucide-react';
+import { submitRequest } from '@/app/actions/submit-request';
 import { COMPANY_NAME, emergencyPhone } from '@/config/company';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { EmergencyBanner } from '@/components/request-form/EmergencyBanner';
@@ -39,6 +40,7 @@ export default async function TenantFormPage() {
         properties={properties.data.sort((a, b) => natural.compare(a.name, b.name))}
         units={units.data.sort((a, b) => natural.compare(a.unit_number, b.unit_number))}
         phone={phone}
+        submit={submitRequest}
       />
     </main>
   );

@@ -33,7 +33,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {open} open · {allGroups.attention.length} need attention
           </p>
         </div>
-        {/* The page behind this link is task 3.7. */}
         <Link href="/staff/requests/new" className={buttonClass('primary', 'h-10')}>
           <Plus size={16} aria-hidden="true" />
           Log a phone request

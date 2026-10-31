@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { CATEGORY_BY_ID } from '@/config/categories';
-import { submitRequest } from '@/app/actions/submit-request';
 import { fieldErrors, requestSchema } from '@/lib/validation';
-import { INITIAL_VALUES, type FormValues } from './form-state';
+import { INITIAL_VALUES, type FormValues, type SubmitResult } from './form-state';
 import { StepContact } from './StepContact';
 import { StepDetails } from './StepDetails';
 import { StepProblem } from './StepProblem';
@@ -14,6 +13,10 @@ type Props = {
   properties: PropertyOption[];
   units: UnitOption[];
   phone: { display: string; tel: string };
+  /** The tenant page passes submitRequest, the staff page logPhoneRequest. */
+  submit: (data: FormData) => Promise<SubmitResult>;
+  /** Staff logging a call: the caller is not asked to try the quick check first. */
+  staff?: boolean;
 };
 
 /** The fields the server validates, in the shape of requestSchema. */
@@ -40,7 +43,7 @@ function toFormData(v: FormValues) {
   return data;
 }
 
-export function RequestForm({ properties, units, phone }: Props) {
+export function RequestForm({ properties, units, phone, submit, staff = false }: Props) {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [showErrors, setShowErrors] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -60,7 +63,7 @@ export function RequestForm({ properties, units, phone }: Props) {
   const category = values.category ? CATEGORY_BY_ID[values.category] : null;
   const showContact = values.unitId !== '';
   const showProblem = showContact && values.name.trim() !== '' && (values.phone.trim() !== '' || values.email.trim() !== '');
-  const showFollowUps = category !== null && (!category.quickCheck || values.quickCheck === 'still_broken');
+  const showFollowUps = category !== null && (staff || !category.quickCheck || values.quickCheck === 'still_broken');
   const showDetails = showProblem && showFollowUps && category.questions.every((q) => q.optional || values.answers[q.key]);
 
   const parsed = requestSchema.safeParse(requestInput(values));
@@ -73,7 +76,7 @@ export function RequestForm({ properties, units, phone }: Props) {
     if (!parsed.success) return;
     startTransition(async () => {
       // On success the action redirects to /sent, so a result only ever means failure.
-      const result = await submitRequest(toFormData(values));
+      const result = await submit(toFormData(values));
       if (result) setServerError(result.message);
     });
   }
@@ -82,7 +85,7 @@ export function RequestForm({ properties, units, phone }: Props) {
     <form onSubmit={handleSubmit} noValidate>
       <StepWhere values={values} errors={errors} update={update} properties={properties} units={units} />
       {showContact && <StepContact values={values} errors={errors} update={update} />}
-      {showProblem && <StepProblem values={values} errors={errors} update={update} phone={phone} />}
+      {showProblem && <StepProblem values={values} errors={errors} update={update} phone={phone} staff={staff} />}
       {showDetails && <StepDetails values={values} errors={errors} update={update} pending={pending} />}
       {serverError && (
         <p role="alert" className="mt-4 rounded-control border border-danger-line bg-danger-tint px-4 py-3 text-danger-hover">

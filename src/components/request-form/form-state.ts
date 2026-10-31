@@ -41,3 +41,6 @@ export type StepProps = {
   errors: Errors;
   update: (patch: Partial<FormValues>) => void;
 };
+
+/** What a submit action returns. Only failures come back; success redirects away. */
+export type SubmitResult = { ok: false; message: string };

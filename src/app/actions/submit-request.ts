@@ -2,47 +2,20 @@
 
 import { randomInt } from 'node:crypto';
 import { redirect } from 'next/navigation';
-import { CATEGORY_BY_ID, sanitizeAnswers } from '@/config/categories';
+import { CATEGORY_BY_ID } from '@/config/categories';
+import type { SubmitResult } from '@/components/request-form/form-state';
 import { setConfirmation, type Confirmation } from '@/lib/confirmation';
-import { contactMatchesTenant } from '@/lib/contact';
-import { MAX_PHOTOS, photoError } from '@/lib/photos';
-import { findUnit, insertRequest, savePhotos } from '@/lib/requests';
+import { checkPhotos, findUnit, formText as text, insertRequest, newRequestRow, parseRequestForm, savePhotos } from '@/lib/requests';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { fieldErrors, requestSchema } from '@/lib/validation';
-
-/** Only failures come back; success redirects to /sent. */
-export type SubmitResult = { ok: false; message: string };
-
-const text = (formData: FormData, key: string) => {
-  const value = formData.get(key);
-  return typeof value === 'string' ? value : '';
-};
+import { fieldErrors } from '@/lib/validation';
 
 /** Same alphabet as gen_request_ref(): no 0/O/1/I/L. Only used for the honeypot's fake success. */
 const fakeRef = () =>
   'MR-' + Array.from({ length: 4 }, () => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[randomInt(31)]).join('');
 
-function parseAnswers(raw: string): Record<string, unknown> {
-  try {
-    const value: unknown = JSON.parse(raw);
-    return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
-}
-
 export async function submitRequest(formData: FormData): Promise<SubmitResult> {
   // 1. Validate everything again on the server.
-  const parsed = requestSchema.safeParse({
-    unitId: text(formData, 'unitId'),
-    name: text(formData, 'name'),
-    phone: text(formData, 'phone'),
-    email: text(formData, 'email'),
-    category: text(formData, 'category'),
-    answers: parseAnswers(text(formData, 'answers')),
-    description: text(formData, 'description'),
-    entry: text(formData, 'entry'),
-  });
+  const parsed = parseRequestForm(formData);
   if (!parsed.success) return { ok: false, message: Object.values(fieldErrors(parsed.error))[0] };
   const input = parsed.data;
   const firstName = input.name.split(/\s+/)[0];
@@ -55,10 +28,9 @@ export async function submitRequest(formData: FormData): Promise<SubmitResult> {
     redirect('/sent');
   }
 
-  const photos = formData.getAll('photos').filter((f): f is File => f instanceof File && f.size > 0);
-  if (photos.length > MAX_PHOTOS) return { ok: false, message: `You can add up to ${MAX_PHOTOS} photos.` };
-  const badPhoto = photos.map(photoError).find((e) => e !== null);
-  if (badPhoto) return { ok: false, message: badPhoto };
+  const checked = checkPhotos(formData);
+  if ('error' in checked) return { ok: false, message: checked.error };
+  const { photos } = checked;
 
   // 3. The unit must exist.
   const admin = createAdminClient();
@@ -66,29 +38,17 @@ export async function submitRequest(formData: FormData): Promise<SubmitResult> {
   if (unit === FAILED) return { ok: false, message: SEND_FAILED };
   if (!unit) return { ok: false, message: "We couldn't find that unit. Reload the page and try again." };
 
-  // 4-6. Flags, then insert.
-  const { answers, emergency } = sanitizeAnswers(input.category, input.answers);
-  const request = await insertRequest(admin, {
-    unit_id: input.unitId,
-    contact_name: input.name,
-    contact_phone: input.phone || null,
-    contact_email: input.email || null,
-    contact_matches_tenant: contactMatchesTenant(input, unit.tenants),
-    category: input.category,
-    answers,
-    // The form only reaches this point after "No, still broken", so the check was tried.
-    quick_check_tried: category.quickCheck ? true : null,
-    emergency_flag: emergency,
-    description: input.description,
-    entry_allowed: input.entry === 'yes',
-  }).catch(logFailure);
+  // 4-6. Match the tenant on file, flag emergencies, insert. The form only gets this far after
+  // "No, still broken", so a quick check was tried.
+  const row = newRequestRow(input, unit, category.quickCheck ? true : null);
+  const request = await insertRequest(admin, row).catch(logFailure);
   if (request === FAILED) return { ok: false, message: SEND_FAILED };
 
   // 7. Photos.
   const saved = await savePhotos(admin, request.id, photos);
 
   // 8. Hand the confirmation page what it needs, then go there.
-  const firstAnswer = category.questions.map((q) => answers[q.key]).find(Boolean);
+  const firstAnswer = category.questions.map((q) => row.answers[q.key]).find(Boolean);
   const confirmation: Confirmation = {
     ref: request.ref,
     firstName,
