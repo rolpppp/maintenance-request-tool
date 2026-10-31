@@ -153,7 +153,12 @@ html {
 .motion-tick path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 350ms ease-out 200ms forwards; }
 .motion-after { animation: fade 300ms ease-out 400ms both; }
 
+/* Loading skeleton: opacity pulse, 1.4s. */
+@keyframes pulse-soft { 50% { opacity: 0.5; } }
+.skeleton { animation: pulse-soft 1.4s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
   .motion-reveal, .motion-warn, .motion-thumb, .motion-pop, .motion-new-event, .motion-card, .motion-after {
     animation: fade 150ms ease-out both;
   }
