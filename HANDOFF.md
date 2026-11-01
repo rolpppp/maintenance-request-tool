@@ -229,6 +229,7 @@ Easing: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`; drawer `cubic-bezier(0.32,
 | "Glad it's working" check | scale(.9) + fade, 450ms, `cubic-bezier(0.34,1.45,0.64,1)`, 120ms delay |
 | Confirmation card | translateY(16px) + fade, 450ms; tick draws (stroke-dashoffset) 350ms after 200ms; rest fades in at 400ms |
 | New Activity entry (only the newest) | translateY(-6px) + fade, 220ms |
+| Confirmation timeline, current step ("The team reviews it") | accent ring scales 1 → 1.9 and fades out, 2s ease-out, loops, starts at 900ms; none under reduced motion (the static ring stays) |
 | Status pill change | background/colour transition, 150ms |
 | Toast | translate(-50%, 8px) + fade, 200ms |
 | Dialog open | scale(.97) + fade, 200ms; bottom sheet translateY(100%) → 0, 300ms drawer easing |

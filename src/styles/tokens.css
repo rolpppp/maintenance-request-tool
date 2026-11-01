@@ -157,6 +157,19 @@ html {
 .motion-tick path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 350ms ease-out 200ms forwards; }
 .motion-after { animation: fade 300ms ease-out 400ms both; }
 
+/* The current timeline step sends out a soft ring, so "The team reviews it" reads as happening now.
+   It starts once the card has settled (~700ms) and loops slowly; the ring is decoration only. */
+@keyframes ping { from { opacity: 0.45; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
+.motion-current::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--color-accent);
+  border-radius: 9999px;
+  opacity: 0;
+  animation: ping 2s var(--ease-out) 900ms infinite;
+}
+
 /* Loading skeleton: opacity pulse, 1.4s. */
 @keyframes pulse-soft { 50% { opacity: 0.5; } }
 .skeleton { animation: pulse-soft 1.4s ease-in-out infinite; }
@@ -167,6 +180,7 @@ html {
     animation: fade 150ms ease-out both;
   }
   .motion-tick path { animation: none; stroke-dashoffset: 0; }
+  .motion-current::after { animation: none; }
   .spinner { animation-duration: 1.6s; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }

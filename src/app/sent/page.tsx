@@ -61,7 +61,7 @@ export default async function SentPage() {
               <li key={step.title} className="relative flex gap-3 pb-5 last:pb-0">
                 {i < TIMELINE.length - 1 && <span className="absolute top-6 bottom-0 left-[11px] w-px bg-line" aria-hidden="true" />}
                 <span
-                  className={`relative grid size-6 shrink-0 place-items-center rounded-full ${step.state === 'done' ? 'bg-accent text-white' : step.state === 'current' ? 'border-2 border-accent bg-white' : 'border border-line-strong bg-white'}`}
+                  className={`relative grid size-6 shrink-0 place-items-center rounded-full ${step.state === 'done' ? 'bg-accent text-white' : step.state === 'current' ? 'motion-current border-2 border-accent bg-white' : 'border border-line-strong bg-white'}`}
                   aria-hidden="true"
                 >
                   {step.state === 'done' && <Check size={14} strokeWidth={3} />}
