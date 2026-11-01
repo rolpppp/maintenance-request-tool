@@ -3,6 +3,7 @@ import { Clock, Wrench } from 'lucide-react';
 import { submitRequest } from '@/app/actions/submit-request';
 import { COMPANY_NAME, emergencyPhone } from '@/config/company';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { linkedUnitId } from '@/lib/unit-link';
 import { EmergencyBanner } from '@/components/request-form/EmergencyBanner';
 import { RequestForm } from '@/components/request-form/RequestForm';
 import type { PropertyOption, UnitOption } from '@/components/request-form/StepWhere';
@@ -12,7 +13,9 @@ export const dynamic = 'force-dynamic';
 
 const natural = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
 
-export default async function TenantFormPage() {
+// ?unit=<uuid> is a link for one unit (say, printed in its welcome folder). It only preselects the form.
+export default async function TenantFormPage({ searchParams }: { searchParams: Promise<{ unit?: string | string[] }> }) {
+  const { unit } = await searchParams;
   const admin = createAdminClient();
   const [properties, units] = await Promise.all([
     admin.from('properties').select('id, name').returns<PropertyOption[]>(),
@@ -42,6 +45,7 @@ export default async function TenantFormPage() {
         units={units.data.sort((a, b) => natural.compare(a.unit_number, b.unit_number))}
         phone={phone}
         submit={submitRequest}
+        initialUnitId={linkedUnitId(unit, units.data)}
       />
     </main>
   );

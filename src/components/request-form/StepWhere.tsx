@@ -12,7 +12,7 @@ export function StepWhere({
   update,
   properties,
   units,
-}: StepProps & { properties: PropertyOption[]; units: UnitOption[] }) {
+}: Omit<StepProps, 'announce'> & { properties: PropertyOption[]; units: UnitOption[] }) {
   const propertyUnits = units.filter((u) => u.property_id === values.propertyId);
   return (
     <Step n={1} title="Where is the problem?" reveal={false}>
@@ -23,8 +23,12 @@ export function StepWhere({
             name="property"
             className="control"
             value={values.propertyId}
-            // A unit belongs to one property, so changing the property clears the unit.
-            onChange={(e) => update({ propertyId: e.target.value, unitId: '' })}
+            // A unit belongs to one property, so changing the property replaces the unit.
+            onChange={(e) => {
+              const unitsHere = units.filter((u) => u.property_id === e.target.value);
+              // Nothing to choose between when the property has a single unit.
+              update({ propertyId: e.target.value, unitId: unitsHere.length === 1 ? unitsHere[0].id : '' });
+            }}
           >
             <option value="" disabled>
               Choose a property
@@ -41,7 +45,7 @@ export function StepWhere({
         {(a11y) => (
           <select
             {...a11y}
-            name="unit"
+            name="unitId"
             className="control"
             value={values.unitId}
             disabled={!values.propertyId}

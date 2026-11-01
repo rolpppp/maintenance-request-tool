@@ -8,6 +8,13 @@ export function normalizePhone(phone: string): string {
   return digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
 }
 
+export const PHONE_MESSAGE = 'Check the phone number, it should have 10 digits.';
+
+/** A US number as people type it: only digits and ( ) + - . spaces, and 10 digits (11 with a leading 1). */
+export function isValidPhone(phone: string): boolean {
+  return /^[\d\s()+.-]+$/.test(phone) && normalizePhone(phone).length === 10;
+}
+
 /**
  * The id of the current tenant whose phone or email equals the contact's, or null. A hint for
  * staff, not proof of identity. If several match, one matching both wins, else the first.

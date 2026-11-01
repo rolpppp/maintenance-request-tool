@@ -9,12 +9,12 @@ import type { StepProps } from './form-state';
 type Phone = { display: string; tel: string };
 
 /** Everything in this step is driven by categories.ts. Changing the category clears the answers and the quick check. */
-export function StepProblem({ values, update, phone, staff }: StepProps & { phone: Phone; staff: boolean }) {
+export function StepProblem({ values, update, announce, phone, staff }: StepProps & { phone: Phone; staff: boolean }) {
   const category = values.category ? CATEGORY_BY_ID[values.category] : null;
   const showFollowUps = category && (staff || !category.quickCheck || values.quickCheck === 'still_broken');
 
   return (
-    <Step n={3} title="What's wrong?">
+    <Step n={3} title="What's wrong?" announce={announce}>
       <fieldset aria-labelledby="step-3-title" className="space-y-2">
         {CATEGORIES.map((c) => (
           <RadioCard
