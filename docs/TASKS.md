@@ -53,7 +53,7 @@ Each task is one commit. Tick it off when its checks pass. Time estimates add up
 - [x] **4.2 Polish pass.** 375px and 1440px, keyboard-only run-through, reduced motion, contrast spot-check.
 - [ ] **4.3 Deploy** to Vercel; set env vars; create the demo staff user; import the sample data; submit 6–8 realistic requests so the dashboard shows every group.
 - [x] **4.4 README** from `README.template.md` + `docs/AI_LOG.md`.
-- [ ] **4.5 (Optional) Mark as Done dialog** (§5.7.3), only if time remains.
+- [x] **4.5 (Optional) Mark as Done dialog** (§5.7.3), only if time remains.
 
 ## Live-change rehearsal (for the 20-minute call)
 

@@ -81,17 +81,38 @@ export async function setVisit(requestId: string, visitDate: string | null, visi
   return patchRequest(supabase, parsed.data.requestId, { visit_date: date, visit_window: date ? window : 'any' }, message);
 }
 
+const noteText = z.string().trim().min(1).max(4000);
+
+// actor_label is required by the table, but the request_events_stamp trigger overwrites it (and
+// actor_id) from auth.uid(), so what the client sends here never reaches the history.
+async function insertNote(supabase: SupabaseClient, requestId: string, note: string) {
+  const { error } = await supabase.from('request_events').insert({ request_id: requestId, kind: 'note', note, actor_label: 'staff' });
+  return error;
+}
+
 export async function addNote(requestId: string, note: string): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  const parsed = z.object({ requestId: id, note: z.string().trim().min(1).max(4000) }).safeParse({ requestId, note });
+  const parsed = z.object({ requestId: id, note: noteText }).safeParse({ requestId, note });
+  if (!parsed.success) return FAILED;
+  const error = await insertNote(supabase, parsed.data.requestId, parsed.data.note);
+  return error ? failed(error) : done('Note added');
+}
+
+/** The Mark as Done dialog: closes the request, then saves "What was done?" as a note when there is one. */
+export async function markDone(requestId: string, note: string): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const parsed = z.object({ requestId: id, note: z.string().trim().max(4000) }).safeParse({ requestId, note });
   if (!parsed.success) return FAILED;
 
-  // actor_label is required by the table, but the request_events_stamp trigger overwrites it (and
-  // actor_id) from auth.uid(), so what the client sends here never reaches the history.
-  const { error } = await supabase
-    .from('request_events')
-    .insert({ request_id: parsed.data.requestId, kind: 'note', note: parsed.data.note, actor_label: 'staff' });
-  return error ? failed(error) : done('Note added');
+  // Status first: if it fails, nothing changed and no orphan note is left behind.
+  const closed = await patchRequest(supabase, parsed.data.requestId, { status: 'done' }, 'Status is Done');
+  if (!closed.ok || !parsed.data.note) return closed;
+  const error = await insertNote(supabase, parsed.data.requestId, parsed.data.note);
+  if (error) {
+    console.error('Staff action failed:', error);
+    return { ok: true, message: "Status is Done, but the note wasn't saved" };
+  }
+  return closed;
 }
 
 const vendorSchema = z.object({

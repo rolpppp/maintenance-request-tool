@@ -79,7 +79,11 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           <ActivityTimeline events={events} now={now} />
         </div>
         <div className="space-y-5 min-[960px]:sticky min-[960px]:top-5 min-[960px]:flex-[1_1_360px] min-[960px]:self-start">
-          <StatusCard requestId={request.id} status={request.status} />
+          <StatusCard
+            requestId={request.id}
+            status={request.status}
+            summary={{ ref: request.ref, title: requestTitle(request), where: `Unit ${request.units.unit_number}` }}
+          />
           <AssignCard requestId={request.id} vendorId={request.vendor_id} vendors={vendors} />
           <VisitCard
             requestId={request.id}

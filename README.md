@@ -11,7 +11,7 @@ A simple tool for a ~75-unit rental company: tenants report problems through one
 - **Tenant form** (`/`): property → unit → contact → category, with quick self-checks, follow-up questions, inline emergency prompts, up to 3 photos, and entry permission. Returns a reference number (`MR-4K7Q`).
 - **Confirmation** (`/sent`): the reference number, a summary and what happens next. It reads only a short-lived signed cookie set by the submit action; nothing can be looked up by reference number.
 - **Staff dashboard** (`/staff`): status counters, filters (property, category, search) kept in the URL, and requests grouped into Needs attention / In progress / Done this week.
-- **Request detail:** change status (New → Scheduled → Waiting on vendor → Done), assign to In-house maintenance or a vendor, set a visit, add internal notes, view photos. Every change is recorded in an activity history that can't be edited.
+- **Request detail:** change status (New → Scheduled → Waiting on vendor → Done), assign to In-house maintenance or a vendor, set a visit, add internal notes, view photos. Marking a request Done asks first and can save a note about the work. Every change is recorded in an activity history that can't be edited.
 - **Log a phone request:** the tenant form in staff mode, saved as the signed-in staff member.
 - **Vendors:** a small editable list; removing hides a vendor (with Undo) and keeps its name on old requests.
 
@@ -84,7 +84,6 @@ Known issues:
 - No rate limit on the public form or sign-in beyond Supabase Auth's own. The honeypot stops only simple bots.
 - Tenant matching misses typos in the tenant data (the sample has `gmial` and `hotmial`), incomplete phone numbers and roommates not on the lease. They show as "Not on file".
 - Demo data: history entries are stamped by the database with the real time, so the seeded requests' Activity shows today even when the request is days old.
-- The optional "Mark as Done" dialog (spec §5.7.3) wasn't built; Done is set with the status buttons.
 
 Next:
 - A staff action to link or change a request's tenant, recorded in history; re-match old requests after a tenant import.
