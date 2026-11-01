@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "import:units": "tsx --env-file=.env.local scripts/import-units.ts",
-    "create:staff": "tsx --env-file=.env.local scripts/create-staff.ts"
+    "create:staff": "tsx --env-file=.env.local scripts/create-staff.ts",
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
