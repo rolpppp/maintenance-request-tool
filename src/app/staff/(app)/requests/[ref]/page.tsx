@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { z } from 'zod';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { StatusPill } from '@/components/StatusPill';
+import { EmergencyLabel } from '@/components/dashboard/EmergencyLabel';
 import { Tag } from '@/components/Tag';
 import { ActivityTimeline } from '@/components/request-detail/ActivityTimeline';
 import { AssignCard } from '@/components/request-detail/AssignCard';
@@ -15,8 +16,8 @@ import { TenantPanel } from '@/components/request-detail/TenantPanel';
 import { VisitCard } from '@/components/request-detail/VisitCard';
 import { CATEGORY_BY_ID } from '@/config/categories';
 import { requireStaff } from '@/lib/auth';
-import { openMs } from '@/lib/dashboard';
-import { ageWords, atLabel, humanVisit } from '@/lib/format';
+import { isOpenEmergency, openMs } from '@/lib/dashboard';
+import { ageWords, atLabel, humanVisit, todayInZone } from '@/lib/format';
 import { requestTitle } from '@/lib/request-title';
 import { getRequest, listEvents, listPhotos, listVendors } from '@/lib/staff-requests';
 
@@ -52,6 +53,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         <div className="flex flex-wrap items-center gap-3">
           <Tag value={request.ref} />
           <StatusPill status={request.status} />
+          {isOpenEmergency(request) && <EmergencyLabel className="text-sm" />}
           <span className="text-sm text-muted tabular-nums">Open {ageWords(openMs(request, now))}</span>
         </div>
         <div className="mt-3 flex items-center gap-3">
@@ -84,11 +86,17 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             status={request.status}
             summary={{ ref: request.ref, title: requestTitle(request), where: `Unit ${request.units.unit_number}` }}
           />
-          <AssignCard requestId={request.id} vendorId={request.vendor_id} vendors={vendors} />
+          <AssignCard
+            requestId={request.id}
+            vendorId={request.vendor_id}
+            vendors={vendors}
+            suggestedVendor={CATEGORY_BY_ID[request.category].suggestedVendor}
+          />
           <VisitCard
             requestId={request.id}
             visit={{ date: request.visit_date, window: request.visit_window }}
             summary={humanVisit(request.visit_date, request.visit_window, now)}
+            min={todayInZone()}
           />
           <NoteCard requestId={request.id} />
         </div>

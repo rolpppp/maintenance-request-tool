@@ -4,10 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { STATUS_META, STATUS_ORDER } from '@/config/status';
+import { STATUS_META, STATUS_ORDER, type RequestStatus } from '@/config/status';
 import type { ActionResult } from '@/lib/action-result';
 import { requireStaff } from '@/lib/auth';
-import { humanVisit } from '@/lib/format';
+import { humanVisit, todayInZone } from '@/lib/format';
+import { vendorSchema } from '@/lib/vendor-input';
 import { createClient } from '@/lib/supabase/server';
 
 // No requireStaff(): signing out is always allowed, even for a signed-in user who isn't staff.
@@ -29,6 +30,13 @@ function failed(error: unknown): ActionResult {
   console.error('Staff action failed:', error);
   return FAILED;
 }
+
+/** Input the staff member can fix: the message reaches the toast, unlike a database error. */
+const rejected = (message: string): ActionResult => ({ ok: false, message });
+
+/** Postgres "unique_violation": here, the active-vendor-name index from migration 0003. */
+const isDuplicate = (error: { code?: string }) => error.code === '23505';
+const duplicateMessage = (name: string) => `There's already a vendor called ${name}.`;
 
 /** Success: refresh every /staff page, since a change on one (a vendor name, a status) shows on others. */
 function done(message: string): ActionResult {
@@ -75,10 +83,23 @@ export async function setVisit(requestId: string, visitDate: string | null, visi
     .safeParse({ requestId, visitDate, visitWindow });
   if (!parsed.success) return FAILED;
   const { visitDate: date, visitWindow: window } = parsed.data;
+  // Dates compare as text ("2026-11-02"); clearing the visit is always allowed.
+  if (date && date < todayInZone()) return rejected('Choose today or a later date.');
+
+  // Booking a visit on a brand-new request schedules it. It goes in the same update, so the history
+  // records both changes under this staff member. Any other status is left alone.
+  let schedules = false;
+  if (date) {
+    const { data, error } = await supabase.from('requests').select('status').eq('id', parsed.data.requestId).single<{ status: RequestStatus }>();
+    if (error) return failed(error);
+    schedules = data.status === 'new';
+  }
 
   // A time window with no date means nothing, so clearing the date resets it.
-  const message = date ? `Visit is ${humanVisit(date, window, new Date())}` : 'Visit cleared';
-  return patchRequest(supabase, parsed.data.requestId, { visit_date: date, visit_window: date ? window : 'any' }, message);
+  const visit = date ? `Visit is ${humanVisit(date, window, new Date())}` : 'Visit cleared';
+  const message = schedules ? `${visit} · Status is ${STATUS_META.scheduled.label}` : visit;
+  const patch = { visit_date: date, visit_window: date ? window : 'any', ...(schedules && { status: 'scheduled' }) };
+  return patchRequest(supabase, parsed.data.requestId, patch, message);
 }
 
 const noteText = z.string().trim().min(1).max(4000);
@@ -115,29 +136,27 @@ export async function markDone(requestId: string, note: string): Promise<ActionR
   return closed;
 }
 
-const vendorSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  phone: z.string().trim().max(40),
-});
-
 export async function addVendor(name: string, phone: string): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const parsed = vendorSchema.safeParse({ name, phone });
-  if (!parsed.success) return FAILED;
+  if (!parsed.success) return rejected(parsed.error.issues[0].message);
   const { error } = await supabase.from('vendors').insert({ name: parsed.data.name, phone: parsed.data.phone || null });
+  if (error && isDuplicate(error)) return rejected(duplicateMessage(parsed.data.name));
   return error ? failed(error) : done(`${parsed.data.name} added`);
 }
 
 export async function updateVendor(vendorId: string, name: string, phone: string): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  const parsed = z.object({ vendorId: id }).extend(vendorSchema.shape).safeParse({ vendorId, name, phone });
-  if (!parsed.success) return FAILED;
+  if (!id.safeParse(vendorId).success) return FAILED;
+  const parsed = vendorSchema.safeParse({ name, phone });
+  if (!parsed.success) return rejected(parsed.error.issues[0].message);
   const { error } = await supabase
     .from('vendors')
     .update({ name: parsed.data.name, phone: parsed.data.phone || null })
-    .eq('id', parsed.data.vendorId)
+    .eq('id', vendorId)
     .select('id')
     .single();
+  if (error && isDuplicate(error)) return rejected(duplicateMessage(parsed.data.name));
   return error ? failed(error) : done(`${parsed.data.name} updated`);
 }
 
@@ -147,6 +166,8 @@ async function setVendorActive(vendorId: string, isActive: boolean, message: str
   const parsed = id.safeParse(vendorId);
   if (!parsed.success) return FAILED;
   const { error } = await supabase.from('vendors').update({ is_active: isActive }).eq('id', parsed.data).select('id').single();
+  // Undoing a removal fails when a newer vendor has taken the name.
+  if (error && isDuplicate(error)) return rejected("There's already an active vendor with that name.");
   return error ? failed(error) : done(message);
 }
 

@@ -5,15 +5,16 @@ import { Check } from 'lucide-react';
 import { Spinner } from '@/components/Spinner';
 import type { ActionResult } from '@/lib/action-result';
 
-type Save = (action: () => Promise<ActionResult>) => Promise<boolean>;
-type Toast = { kind: 'saving' } | { kind: 'saved'; message: string } | { kind: 'error'; retry: () => void };
+type Save = (action: () => Promise<ActionResult>) => Promise<ActionResult>;
+type Toast = { kind: 'saving' } | { kind: 'saved'; message: string } | { kind: 'error'; message?: string; retry: () => void };
 
 const SaveContext = createContext<Save | null>(null);
 
 /**
  * Runs a staff save and reports it: "Saving…", then "Saved · {message}" (gone after 2.2 s) or
  * "Couldn't save. Nothing changed." with a Try again button that runs the same save once more.
- * Resolves to whether it worked, so the caller can clear a form or put an input back.
+ * A rejected input shows its own message instead (retrying the same input would fail again, so no button).
+ * Resolves to the result, so the caller can clear a form, put an input back or show the message inline.
  */
 export function useSave(): Save {
   const save = useContext(SaveContext);
@@ -34,9 +35,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       setToast({ kind: 'saved', message: result.message });
       hideTimer.current = window.setTimeout(() => setToast(null), 2200);
     } else {
-      setToast({ kind: 'error', retry: () => void run(action) });
+      setToast({ kind: 'error', message: result.message, retry: () => void run(action) });
+      if (result.message) hideTimer.current = window.setTimeout(() => setToast(null), 5000);
     }
-    return result.ok;
+    return result;
   }, []);
 
   return (
@@ -62,10 +64,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             )}
             {toast.kind === 'error' && (
               <>
-                Couldn&apos;t save. Nothing changed.
-                <button type="button" onClick={toast.retry} className="font-semibold underline underline-offset-2">
-                  Try again
-                </button>
+                {toast.message ?? "Couldn't save. Nothing changed."}
+                {!toast.message && (
+                  <button type="button" onClick={toast.retry} className="font-semibold underline underline-offset-2">
+                    Try again
+                  </button>
+                )}
               </>
             )}
           </p>

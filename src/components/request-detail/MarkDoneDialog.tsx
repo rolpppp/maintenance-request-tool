@@ -60,6 +60,10 @@ function Content({ from, summary, pending, onConfirm, onClose }: Omit<Props, 'op
           maxLength={4000}
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          aria-keyshortcuts="Control+Enter Meta+Enter"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !pending) onConfirm(note);
+          }}
         />
       </div>
       <DialogFooter>

@@ -34,7 +34,7 @@ export function StatusCard({ requestId, status, summary }: Props) {
     startTransition(async () => {
       setShown('done');
       // On failure the dialog stays open, so the typed note isn't lost.
-      if (await save(() => markDone(requestId, note))) setConfirmingDone(false);
+      if ((await save(() => markDone(requestId, note))).ok) setConfirmingDone(false);
     });
   }
 

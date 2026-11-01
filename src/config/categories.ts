@@ -35,6 +35,8 @@ export type Category = {
   icon: 'Thermometer' | 'Droplet' | 'Zap' | 'Bug' | 'WashingMachine' | 'KeyRound' | 'Ellipsis';
   /** Steps shown under "Try this first". Omit for categories without a self-check. */
   quickCheck?: string[];
+  /** Vendor name the detail page offers to assign when no one is on the request (matched to an active vendor, ignoring case). */
+  suggestedVendor?: string;
   /** Text in the inline emergency prompt when an emergency answer is picked. */
   emergencyText?: string;
   questions: FollowUpQuestion[];
@@ -46,6 +48,7 @@ export const EXTREME_HEAT_F = 90;
 export const CATEGORIES: Category[] = [
   {
     id: 'ac_heating',
+    suggestedVendor: 'AC contractor',
     label: 'AC / heating',
     hint: 'No cool air, no heat, thermostat',
     icon: 'Thermometer',
@@ -85,6 +88,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'plumbing',
+    suggestedVendor: 'Plumber',
     label: 'Plumbing',
     hint: 'Leaks, clogs, toilet, hot water',
     icon: 'Droplet',
@@ -109,6 +113,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'electrical',
+    suggestedVendor: 'Electrician',
     label: 'Electrical',
     hint: 'Outlets, switches, lights',
     icon: 'Zap',
@@ -132,6 +137,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'pest',
+    suggestedVendor: 'Pest control',
     label: 'Pests',
     hint: 'Ants, roaches, mice, bed bugs',
     icon: 'Bug',
@@ -156,6 +162,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'appliance',
+    suggestedVendor: 'In-house maintenance',
     label: 'Appliance',
     hint: 'Fridge, stove, dishwasher, washer',
     icon: 'WashingMachine',
@@ -179,6 +186,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'door_lock',
+    suggestedVendor: 'In-house maintenance',
     label: 'Door / lock',
     hint: 'Won’t lock, won’t open, keys',
     icon: 'KeyRound',
@@ -201,6 +209,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'other',
+    suggestedVendor: 'In-house maintenance',
     label: 'Other',
     hint: 'Walls, windows, ceilings, anything else',
     icon: 'Ellipsis',

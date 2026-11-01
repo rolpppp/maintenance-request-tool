@@ -34,7 +34,7 @@ function Content({ vendor, onClose }: { vendor: VendorRow; onClose: () => void }
   }
 
   async function undo() {
-    if (await save(() => restoreVendor(vendor.id))) onClose();
+    if ((await save(() => restoreVendor(vendor.id))).ok) onClose();
   }
 
   if (step === 'removed') {

@@ -14,7 +14,7 @@ export function NoteCard({ requestId }: { requestId: string }) {
   function add() {
     startTransition(async () => {
       // Keep the text if the save fails, so nothing typed is lost.
-      if (await save(() => addNote(requestId, note))) setNote('');
+      if ((await save(() => addNote(requestId, note))).ok) setNote('');
     });
   }
 
@@ -27,6 +27,10 @@ export function NoteCard({ requestId }: { requestId: string }) {
         maxLength={4000}
         value={note}
         onChange={(e) => setNote(e.target.value)}
+        aria-keyshortcuts="Control+Enter Meta+Enter"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && note.trim() !== '' && !pending) add();
+        }}
       />
       <p id="note-hint" className="mt-1.5 text-sm text-muted">
         Visible to staff only. Tenants never see notes.

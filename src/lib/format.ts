@@ -70,3 +70,6 @@ export function humanVisit(visitDate: string | null, window: VisitWindow, now: D
           } as Intl.DateTimeFormatOptions).format(new Date(visitDate));
   return WINDOWS[window] ? `${day}, ${WINDOWS[window]}` : day;
 }
+
+/** Today's calendar date ("2026-11-02") in the company time zone; the earliest day a visit can be booked. */
+export const todayInZone = () => dayKey(new Date());

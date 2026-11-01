@@ -14,8 +14,8 @@ const WINDOW_OPTIONS: { value: VisitWindow; label: string }[] = [
 
 type Visit = { date: string | null; window: VisitWindow };
 
-/** `summary` ("Today, 12–5") is worded on the server, where the company time zone is known. */
-export function VisitCard({ requestId, visit, summary }: { requestId: string; visit: Visit; summary: string }) {
+/** `summary` ("Today, 12–5") and `min` (today, "2026-11-02") come from the server, where the company time zone is known. */
+export function VisitCard({ requestId, visit, summary, min }: { requestId: string; visit: Visit; summary: string; min: string }) {
   const save = useSave();
   const [, startTransition] = useTransition();
   const [shown, setShown] = useOptimistic(visit);
@@ -34,6 +34,7 @@ export function VisitCard({ requestId, visit, summary }: { requestId: string; vi
           Date
           <input
             type="date"
+            min={min}
             className="control mt-1 h-11! text-base font-normal"
             value={shown.date ?? ''}
             onChange={(e) => {
