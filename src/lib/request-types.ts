@@ -15,6 +15,7 @@ export type RequestRow = {
   answers: Record<string, string>;
   description: string;
   status: RequestStatus;
+  emergency_flag: boolean;
   vendor_id: string | null;
   visit_date: string | null;
   visit_window: VisitWindow;

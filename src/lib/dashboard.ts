@@ -22,6 +22,9 @@ export const openMs = (r: Pick<RequestRow, 'created_at' | 'closed_at'>, now: Dat
 
 export const isAging = (r: DashboardRequest, now: Date) => r.status !== 'done' && openMs(r, now) >= AGING_DAYS * DAY;
 
+/** An emergency stops being one once the request is closed. */
+export const isOpenEmergency = (r: Pick<RequestRow, 'emergency_flag' | 'status'>) => r.emergency_flag && r.status !== 'done';
+
 export const groupOf = (r: DashboardRequest, now: Date): DashboardGroup =>
   dashboardGroup(r.status, openMs(r, now) / DAY, AGING_DAYS);
 
@@ -58,10 +61,12 @@ export function applyFilters(requests: DashboardRequest[], f: Filters): Dashboar
   );
 }
 
-/** Newest first within each group. */
+/** Newest first within each group; open emergencies come first (still newest first among themselves). */
 export function groupRequests(requests: DashboardRequest[], now: Date): Record<DashboardGroup, DashboardRequest[]> {
   const groups: Record<DashboardGroup, DashboardRequest[]> = { attention: [], progress: [], done: [] };
-  const newestFirst = [...requests].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const newestFirst = [...requests].sort(
+    (a, b) => Number(isOpenEmergency(b)) - Number(isOpenEmergency(a)) || b.created_at.localeCompare(a.created_at),
+  );
   for (const r of newestFirst) groups[groupOf(r, now)].push(r);
   return groups;
 }

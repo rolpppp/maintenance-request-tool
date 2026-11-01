@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { Clock, TriangleAlert } from 'lucide-react';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { StatusDot, StatusPill } from '@/components/StatusPill';
+import { EmergencyLabel } from '@/components/dashboard/EmergencyLabel';
 import { Tag } from '@/components/Tag';
 import { CATEGORY_BY_ID } from '@/config/categories';
 import type { DashboardGroup } from '@/config/status';
-import { isAging, openMs, statusSince, type DashboardRequest } from '@/lib/dashboard';
+import { isAging, isOpenEmergency, openMs, statusSince, type DashboardRequest } from '@/lib/dashboard';
 import { ageWords, dayLabel, humanVisit, submittedLabel } from '@/lib/format';
 import { requestTitle } from '@/lib/request-title';
 
@@ -72,6 +73,7 @@ function RequestRowView({ request, now }: { request: DashboardRequest; now: Date
               {requestTitle(request)}
             </Link>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+              {isOpenEmergency(request) && <EmergencyLabel />}
               <Tag value={request.ref} />
               <span className="tabular-nums">{submittedLabel(request.created_at, now)}</span>
             </div>

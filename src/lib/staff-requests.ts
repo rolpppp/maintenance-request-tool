@@ -8,7 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 /** Reads for the staff screens. They take the signed-in user's client, so RLS decides what is visible. */
 
 const BASE_COLUMNS =
-  'id, ref, contact_name, tenant_id, tenant:tenants!requests_tenant_id_fkey(full_name), category, answers, description, status, vendor_id, visit_date, visit_window, created_at, closed_at, vendors(name, phone, is_in_house)';
+  'id, ref, contact_name, tenant_id, tenant:tenants!requests_tenant_id_fkey(full_name), category, answers, description, status, emergency_flag, vendor_id, visit_date, visit_window, created_at, closed_at, vendors(name, phone, is_in_house)';
 
 /** Open requests plus the ones closed in the last week. Older closed requests are not needed here. */
 export async function listRequests(supabase: SupabaseClient, now: Date): Promise<DashboardRequest[]> {
@@ -26,7 +26,6 @@ export type RequestDetail = RequestRow & {
   contact_phone: string | null;
   contact_email: string | null;
   quick_check_tried: boolean | null;
-  emergency_flag: boolean;
   entry_allowed: boolean;
   source: 'tenant_form' | 'staff_phone';
   units: RequestRow['units'] & { tenants: { full_name: string; phone: string | null; is_current: boolean }[] };
@@ -48,7 +47,7 @@ export async function getRequest(supabase: SupabaseClient, ref: string): Promise
   const { data, error } = await supabase
     .from('requests')
     .select(
-      `${BASE_COLUMNS}, units(unit_number, properties(name), tenants(full_name, phone, is_current)), contact_phone, contact_email, quick_check_tried, emergency_flag, entry_allowed, source`,
+      `${BASE_COLUMNS}, units(unit_number, properties(name), tenants(full_name, phone, is_current)), contact_phone, contact_email, quick_check_tried, entry_allowed, source`,
     )
     .eq('ref', ref)
     .maybeSingle<RequestDetail>();
