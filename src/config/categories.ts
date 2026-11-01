@@ -201,7 +201,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: 'other',
-    label: 'Something else',
+    label: 'Other',
     hint: 'Walls, windows, ceilings, anything else',
     icon: 'Ellipsis',
     questions: [],
