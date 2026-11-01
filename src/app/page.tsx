@@ -1,3 +1,4 @@
+import 'server-only';
 import { Clock, Wrench } from 'lucide-react';
 import { submitRequest } from '@/app/actions/submit-request';
 import { COMPANY_NAME, emergencyPhone } from '@/config/company';

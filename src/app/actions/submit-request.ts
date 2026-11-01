@@ -1,5 +1,7 @@
 'use server';
 
+import 'server-only';
+
 import { randomInt } from 'node:crypto';
 import { redirect } from 'next/navigation';
 import { CATEGORY_BY_ID } from '@/config/categories';

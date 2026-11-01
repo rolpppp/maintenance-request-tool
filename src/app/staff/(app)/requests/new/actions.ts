@@ -1,5 +1,7 @@
 'use server';
 
+import 'server-only';
+
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { SubmitResult } from '@/components/request-form/form-state';
